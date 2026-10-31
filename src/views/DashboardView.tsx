@@ -32,7 +32,7 @@ import { getLaundryLimits } from '../utils/subscription';
 import { useConfirm, useToast } from '../components/NotificationContext';
 import { useDeferredWidgetMount } from '../components/dashboard/useDeferredWidgetMount';
 
-// Code-Split Heavy Widgets & Modals (Dimuat asinkron agar initial load ringan di perangkat kelas bawah)
+// Code-Split Heavy Widgets & Modals
 const LazyDailyReportWidget = lazy(
   () => import('../components/dashboard/DashboardDailyReportWidget')
 );
@@ -208,7 +208,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isBranchDropdownOpen]);
 
-  const COOLDOWN_MS = 10 * 60 * 1000; // 10 menit jeda pengaman
+  const COOLDOWN_MS = 10 * 60 * 1000;
 
   const handleManualSync = async (forceBypass = false) => {
     if (isSyncing || !onSyncCloudData) return;
@@ -216,7 +216,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const now = Date.now();
     const elapsed = now - lastSyncTime;
 
-    // Cek Cooldown 10 menit
     if (!forceBypass && lastSyncTime > 0 && elapsed < COOLDOWN_MS) {
       const remainingMinutes = Math.ceil((COOLDOWN_MS - elapsed) / 60000);
       const passedMinutes = Math.max(1, Math.floor(elapsed / 60000));
@@ -257,7 +256,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
   };
 
-  // 3 Tombol Filter: Default awal menampilkan semua transaksi baru masuk
   const [filterStatus, setFilterStatus] = useState<DashboardFilterStatus>('baru_masuk');
   const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(false);
   const [trxToAmbil, setTrxToAmbil] = useState<Transaksi | null>(null);
@@ -281,7 +279,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     [onUpdateSettings, settings, toast]
   );
 
-  // Single-pass komputasi antrean aktif, hitungan per status, & kuota bulan ini (hemat RAM/CPU)
   const { activeBranchTrx, filterCounts, currentMonthTrxCount } = useMemo(() => {
     const nowDate = new Date();
     const startOfMonth = new Date(nowDate.getFullYear(), nowDate.getMonth(), 1).getTime();
@@ -322,7 +319,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const showInitialSkeleton = Boolean(isLoadingTransaksi && activeBranchTrx.length === 0);
 
-  // Lookup map untuk data pelanggan (alamat lengkap / cadangan)
   const pelangganMap = useMemo(() => {
     const map: Record<string, Pelanggan> = {};
     if (pelangganList && pelangganList.length > 0) {
@@ -376,7 +372,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
   }, [showSedangDikerjakanTab, filterStatus]);
 
-  // Search & Status Filter
   const displayedTrx = useMemo(() => {
     let list = activeBranchTrx;
 
@@ -403,7 +398,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return list;
   }, [activeBranchTrx, filterStatus, searchQuery, getAlamat]);
 
-  // Paginasi 10 Transaksi per Halaman (Hemat Memori & Ringan untuk HP)
   const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -426,7 +420,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const isNewcomer = limits.tier === 'newcomer';
   const isMonthlyQuotaFull = currentMonthTrxCount >= limits.maxMonthlyTransactions;
 
-  // Perhitungan Status Langganan & Masa Aktif
   const now = Date.now();
   const subscriptionEnd = currentUser.subscriptionEndDate || 0;
   const diffMs = subscriptionEnd - now;
@@ -459,7 +452,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
   }, [searchQuery, filterStatus]);
 
-  // Daftar pelanggan unik HANYA dihitung saat modal transisi dibuka (tidak membebani render awal)
   const existingTransitionCustomers = useMemo(() => {
     if (!isTransitionModalOpen) return [];
     const map = new Map<string, { nama: string; nomorTelepon?: string }>();
@@ -483,9 +475,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="flex flex-col h-full max-h-full bg-slate-100 text-slate-800 select-none overflow-hidden relative">
       {!isMobile ? (
-        /* ============================================================================
-           TAMPILAN KHUSUS PC / TABLET (CODE-SPLIT LAZY CHUNK — TIDAK DIMUAT DI HP)
-           ============================================================================ */
         <Suspense fallback={<DesktopWorkspaceFallback />}>
           <LazyDesktopWorkspace
             transaksiList={transaksiList}
@@ -542,11 +531,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           />
         </Suspense>
       ) : (
-        /* ============================================================================
-           TAMPILAN KHUSUS HP / MOBILE (RINGAN & CEPAT UNTUK PERANGKAT KELAS BAWAH)
-           ============================================================================ */
         <>
-          {/* 1. TOOLBAR ATAS (Maroon) */}
+          {/* 1. TOOLBAR ATAS (Maroon) - TIKDAK BISA DI-SCROLL */}
           <header className="bg-[#800000] text-white shadow-md shrink-0 z-30">
             <div className="flex items-center justify-between px-2 md:px-1 h-14">
               <div className="flex items-center gap-1">
@@ -657,7 +643,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     type="button"
                     onClick={() => handleManualSync(false)}
                     disabled={isSyncing}
-                    title="Sinkronisasi Paksa (Smart Delta Sync - Jeda Cooldown 10 Menit)"
+                    title="Sinkronisasi Paksa"
                     className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 active:scale-95 transition disabled:opacity-60 cursor-pointer relative"
                   >
                     <RotateCw className={`w-4 h-4 text-white ${isSyncing ? 'animate-spin' : ''}`} />
@@ -675,270 +661,225 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </header>
 
-          {/* 2. AREA ATAS YANG BISA DI-SCROLL (Pencarian, Filter, Transaksi, Paginasi) */}
-          <div className="flex-1 overflow-y-auto px-1.5 sm:px-4 md:px-6 py-1">
-            <div className="max-w-7xl mx-auto w-full space-y-3 pb-2">
-              <PWAInstallButton variant="banner" />
+          {/* 2. AREA STICKY / TERKUNCI (PWA Banner, Alert, Tombol Ambil Nota Lama, & Kolom Search) */}
+          <div className="bg-slate-100 px-1.5 sm:px-4 md:px-6 pt-1.5 pb-1 shrink-0 z-20 space-y-1.5">
+            <PWAInstallButton variant="banner" />
 
-              {isExpired && !isNewcomer && (
-                <div
-                  onClick={() => (onOpenExpiredModal || onOpenKelolaOwner)()}
-                  className="p-3 rounded-2xl bg-gradient-to-r from-rose-900 via-rose-800 to-[#800000] text-white border border-rose-500/40 shadow-sm cursor-pointer active:scale-98 transition flex items-center justify-between gap-2.5"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 text-amber-300">
-                      <Clock className="w-4 h-4 animate-pulse" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-black text-xs text-amber-300 tracking-wide uppercase">
-                          Masa Langganan Habis
+            {isExpired && !isNewcomer && (
+              <div
+                onClick={() => (onOpenExpiredModal || onOpenKelolaOwner)()}
+                className="p-3 rounded-2xl bg-gradient-to-r from-rose-900 via-rose-800 to-[#800000] text-white border border-rose-500/40 shadow-sm cursor-pointer active:scale-98 transition flex items-center justify-between gap-2.5"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 text-amber-300">
+                    <Clock className="w-4 h-4 animate-pulse" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-black text-xs text-amber-300 tracking-wide uppercase">
+                        Masa Langganan Habis
+                      </span>
+                      {currentUser.role === 'owner' && (
+                        <span className="text-[10px] bg-white/20 px-1.5 py-0.2 rounded font-bold font-mono">
+                          Saldo: {formatRupiah(currentUser.walletBalance || 0)}
                         </span>
-                        {currentUser.role === 'owner' && (
-                          <span className="text-[10px] bg-white/20 px-1.5 py-0.2 rounded font-bold font-mono">
-                            Saldo: {formatRupiah(currentUser.walletBalance || 0)}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-rose-100 truncate mt-0.5">
-                        Klik untuk lihat saldo, isi saldo, &amp; perpanjang 30 hari.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      (onOpenExpiredModal || onOpenKelolaOwner)();
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shrink-0 shadow-sm transition active:scale-95 cursor-pointer"
-                  >
-                    Perpanjang
-                  </button>
-                </div>
-              )}
-
-              {isNewcomer && (
-                <div
-                  onClick={() =>
-                    onOpenUpgradeModal?.(
-                      'Batas kuota 50 transaksi per bulan untuk Paket Newcomer (Gratis) telah tercapai'
-                    )
-                  }
-                  className={`p-2.5 sm:p-3 rounded-2xl border transition flex items-center justify-between gap-2.5 shadow-2xs cursor-pointer active:scale-98 ${
-                    isMonthlyQuotaFull
-                      ? 'bg-rose-50 border-rose-300 text-rose-950 animate-pulse'
-                      : currentMonthTrxCount >= 40
-                      ? 'bg-amber-50 border-amber-200 text-amber-950'
-                      : 'bg-emerald-50/60 border-emerald-200/80 text-emerald-950'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                        isMonthlyQuotaFull
-                          ? 'bg-rose-600 text-white'
-                          : currentMonthTrxCount >= 40
-                          ? 'bg-amber-600 text-white'
-                          : 'bg-emerald-600 text-white'
-                      }`}
-                    >
-                      <Receipt className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenUpgradeModal?.(
-                        'Batas kuota 50 transaksi per bulan untuk Paket Newcomer (Gratis) telah tercapai'
-                      );
-                    }}
-                    className={`px-3 py-1.5 rounded-xl font-bold text-xs shrink-0 shadow-2xs transition active:scale-95 cursor-pointer ${
-                      isMonthlyQuotaFull
-                        ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                        : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-700'
-                    }`}
-                  >
-                    {isMonthlyQuotaFull ? 'Upgrade' : 'Detail'}
-                  </button>
-                </div>
-              )}
-
-              {activeBranchTrx.length >= 300 && (
-                <div
-                  onClick={onOpenLimitModal || onOpenNewTransaksi}
-                  className={`p-3 rounded-2xl border cursor-pointer active:scale-98 transition flex items-center justify-between gap-2.5 shadow-xs ${
-                    activeBranchTrx.length >= 400
-                      ? 'bg-red-50 border-red-300 text-red-950'
-                      : 'bg-amber-50 border-amber-300 text-amber-950'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
-                        activeBranchTrx.length >= 400
-                          ? 'bg-red-600 text-white'
-                          : 'bg-amber-500 text-white'
-                      }`}
-                    >
-                      {activeBranchTrx.length >= 400 ? (
-                        <Lock className="w-5 h-5 stroke-[2.5]" />
-                      ) : (
-                        <ShieldAlert className="w-5 h-5 stroke-[2.5]" />
                       )}
                     </div>
-                    <div className="min-w-0 text-xs">
-                      <div className="font-black flex items-center gap-1.5 flex-wrap">
-                        <span>
-                          {activeBranchTrx.length >= 400
-                            ? 'Batas Transaksi Penuh'
-                            : 'Peringatan Kuota Transaksi'}
-                        </span>
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-black ${
-                            activeBranchTrx.length >= 400
-                              ? 'bg-red-200 text-red-900'
-                              : 'bg-amber-200 text-amber-900'
-                          }`}
-                        >
-                          {activeBranchTrx.length} / 400
-                        </span>
-                      </div>
-                      <p className="text-[11px] opacity-90 truncate mt-0.5">
-                        {activeBranchTrx.length >= 400
-                          ? 'Transaksi baru dikunci. Klik untuk arsipkan.'
-                          : 'Capai 300+ nota. Klik untuk rapikan arsip.'}
-                      </p>
-                    </div>
+                    <p className="text-[11px] text-rose-100 truncate mt-0.5">
+                      Klik untuk lihat saldo, isi saldo, &amp; perpanjang 30 hari.
+                    </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      (onOpenLimitModal || onOpenNewTransaksi)();
-                    }}
-                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black shrink-0 shadow-xs active:scale-95 transition ${
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    (onOpenExpiredModal || onOpenKelolaOwner)();
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shrink-0 shadow-sm transition active:scale-95 cursor-pointer"
+                >
+                  Perpanjang
+                </button>
+              </div>
+            )}
+
+            {activeBranchTrx.length >= 300 && (
+              <div
+                onClick={onOpenLimitModal || onOpenNewTransaksi}
+                className={`p-3 rounded-2xl border cursor-pointer active:scale-98 transition flex items-center justify-between gap-2.5 shadow-xs ${
+                  activeBranchTrx.length >= 400
+                    ? 'bg-red-50 border-red-300 text-red-950'
+                    : 'bg-amber-50 border-amber-300 text-amber-950'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
                       activeBranchTrx.length >= 400
-                        ? 'bg-red-600 hover:bg-red-700 text-white'
-                        : 'bg-amber-600 hover:bg-amber-700 text-white'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-amber-500 text-white'
                     }`}
                   >
-                    Rapikan
+                    {activeBranchTrx.length >= 400 ? (
+                      <Lock className="w-5 h-5 stroke-[2.5]" />
+                    ) : (
+                      <ShieldAlert className="w-5 h-5 stroke-[2.5]" />
+                    )}
+                  </div>
+                  <div className="min-w-0 text-xs">
+                    <div className="font-black flex items-center gap-1.5 flex-wrap">
+                      <span>
+                        {activeBranchTrx.length >= 400
+                          ? 'Batas Transaksi Penuh'
+                          : 'Peringatan Kuota Transaksi'}
+                      </span>
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-black ${
+                          activeBranchTrx.length >= 400
+                            ? 'bg-red-200 text-red-900'
+                            : 'bg-amber-200 text-amber-900'
+                        }`}
+                      >
+                        {activeBranchTrx.length} / 400
+                      </span>
+                    </div>
+                    <p className="text-[11px] opacity-90 truncate mt-0.5">
+                      {activeBranchTrx.length >= 400
+                        ? 'Transaksi baru dikunci. Klik untuk arsipkan.'
+                        : 'Capai 300+ nota. Klik untuk rapikan arsip.'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    (onOpenLimitModal || onOpenNewTransaksi)();
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-black shrink-0 shadow-xs active:scale-95 transition ${
+                    activeBranchTrx.length >= 400
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-amber-600 hover:bg-amber-700 text-white'
+                  }`}
+                >
+                  Rapikan
+                </button>
+              </div>
+            )}
+
+            {/* PENCARIAN & 3 TOMBOL FILTER BERSEBELAHAN */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-2 sm:p-3 shadow-2xs space-y-1.5">
+              {showAmbilNotaLama && (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTransitionInitialQuery('');
+                      setIsTransitionModalOpen(true);
+                    }}
+                    className="flex-1 py-1.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 font-extrabold text-[11px] flex items-center justify-center gap-1.5 transition active:scale-95 shadow-2xs cursor-pointer"
+                  >
+                    <History className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                    <span>+ Ambil Nota Lama (Transisi Aplikasi)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleHideAmbilNotaLama}
+                    title="Sembunyikan tombol"
+                    className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-500 hover:text-slate-800 transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
-
-              {/* PENCARIAN & 3 TOMBOL FILTER BERSEBELAHAN */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-2 sm:p-3 shadow-2xs space-y-1.5">
-                {showAmbilNotaLama && (
-                  <div className="flex items-center gap-1.5">
+              <div className="grid grid-cols-2 gap-1 items-center">
+                <div className="relative w-full">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Cari pelanggan..."
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 pl-9 pr-8 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#800000] focus:bg-white transition"
+                  />
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  {searchQuery && (
                     <button
                       type="button"
-                      onClick={() => {
-                        setTransitionInitialQuery('');
-                        setIsTransitionModalOpen(true);
-                      }}
-                      className="flex-1 py-1.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 font-extrabold text-[11px] flex items-center justify-center gap-1.5 transition active:scale-95 shadow-2xs cursor-pointer"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-2 text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer"
                     >
-                      <History className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                      <span>+ Ambil Nota Lama (Transisi Aplikasi)</span>
+                      ✕
                     </button>
-                    <button
-                      type="button"
-                      onClick={handleHideAmbilNotaLama}
-                      title="Sembunyikan tombol (Dapat dimunculkan kembali di Pengaturan)"
-                      className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-500 hover:text-slate-800 transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-1 items-center">
-                  <div className="relative w-full">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Cari pelanggan..."
-                      className="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 pl-9 pr-8 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#800000] focus:bg-white transition"
-                    />
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                    {searchQuery && (
-                      <button
-                        type="button"
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-3 top-2 text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
+                  )}
+                </div>
 
-                  <div
-                    className={`grid ${
-                      showSedangDikerjakanTab ? 'grid-cols-3' : 'grid-cols-2'
-                    } gap-1 w-full`}
+                <div
+                  className={`grid ${
+                    showSedangDikerjakanTab ? 'grid-cols-3' : 'grid-cols-2'
+                  } gap-1 w-full`}
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilterStatus(filterStatus === 'baru_masuk' ? 'semua' : 'baru_masuk')
+                    }
+                    className={`py-2 px-1 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition ${
+                      filterStatus === 'baru_masuk'
+                        ? 'bg-rose-700 text-white shadow-sm ring-2 ring-rose-300'
+                        : 'bg-rose-50/80 hover:bg-rose-100 text-rose-800 border border-rose-200'
+                    }`}
                   >
+                    <Clock className="w-3.5 h-3.5 shrink-0" />
+                    <span className="text-[10px] px-1 rounded-full font-black bg-rose-200 text-rose-900">
+                      {filterCounts.baruMasuk}
+                    </span>
+                  </button>
+
+                  {showSedangDikerjakanTab && (
                     <button
                       type="button"
                       onClick={() =>
-                        setFilterStatus(filterStatus === 'baru_masuk' ? 'semua' : 'baru_masuk')
+                        setFilterStatus(
+                          filterStatus === 'sedang_dikerjakan' ? 'semua' : 'sedang_dikerjakan'
+                        )
                       }
                       className={`py-2 px-1 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition ${
-                        filterStatus === 'baru_masuk'
-                          ? 'bg-rose-700 text-white shadow-sm ring-2 ring-rose-300'
-                          : 'bg-rose-50/80 hover:bg-rose-100 text-rose-800 border border-rose-200'
+                        filterStatus === 'sedang_dikerjakan'
+                          ? 'bg-amber-600 text-white shadow-sm ring-2 ring-amber-300'
+                          : 'bg-amber-50/80 hover:bg-amber-100 text-amber-800 border border-amber-200'
                       }`}
                     >
-                      <Clock className="w-3.5 h-3.5 shrink-0" />
-                      <span className="text-[10px] px-1 rounded-full font-black bg-rose-200 text-rose-900">
-                        {filterCounts.baruMasuk}
+                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                      <span className="text-[10px] px-1 rounded-full font-black bg-amber-200 text-amber-900">
+                        {filterCounts.sedangDikerjakan}
                       </span>
                     </button>
+                  )}
 
-                    {showSedangDikerjakanTab && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFilterStatus(
-                            filterStatus === 'sedang_dikerjakan' ? 'semua' : 'sedang_dikerjakan'
-                          )
-                        }
-                        className={`py-2 px-1 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition ${
-                          filterStatus === 'sedang_dikerjakan'
-                            ? 'bg-amber-600 text-white shadow-sm ring-2 ring-amber-300'
-                            : 'bg-amber-50/80 hover:bg-amber-100 text-amber-800 border border-amber-200'
-                        }`}
-                      >
-                        <Sparkles className="w-3.5 h-3.5 shrink-0" />
-                        <span className="text-[10px] px-1 rounded-full font-black bg-amber-200 text-amber-900">
-                          {filterCounts.sedangDikerjakan}
-                        </span>
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFilterStatus(filterStatus === 'selesai' ? 'semua' : 'selesai')
-                      }
-                      className={`py-2 px-1 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition ${
-                        filterStatus === 'selesai'
-                          ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300'
-                          : 'bg-emerald-50/80 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
-                      }`}
-                    >
-                      <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-                      <span className="text-[10px] px-1 rounded-full font-black bg-emerald-200 text-emerald-900">
-                        {filterCounts.selesai}
-                      </span>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilterStatus(filterStatus === 'selesai' ? 'semua' : 'selesai')
+                    }
+                    className={`py-2 px-1 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition ${
+                      filterStatus === 'selesai'
+                        ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300'
+                        : 'bg-emerald-50/80 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    }`}
+                  >
+                    <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span className="text-[10px] px-1 rounded-full font-black bg-emerald-200 text-emerald-900">
+                      {filterCounts.selesai}
+                    </span>
+                  </button>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* DAFTAR TRANSAKSI AKTIF */}
+          {/* 3. AREA ANTREAN TRANSAKSI YANG BISA DI-SCROLL */}
+          <div className="flex-1 overflow-y-auto px-1.5 sm:px-4 md:px-6 py-1">
+            <div className="max-w-7xl mx-auto w-full space-y-3 pb-32">
               <main className="space-y-1">
                 {displayedTrx.length === 0 ? (
                   showInitialSkeleton ? (
@@ -1119,7 +1060,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 )}
               </main>
 
-              {/* KONTROL PAGINASI (10 TRANSAKSI PER HALAMAN) */}
+              {/* KONTROL PAGINASI */}
               {displayedTrx.length > 0 && (
                 <div className="bg-white rounded-2xl border border-slate-200 p-2.5 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-2">
                   <div className="text-[11px] text-slate-500 font-medium text-center sm:text-left">
@@ -1198,29 +1139,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
 
-          {/* 5. WIDGET LAPORAN RINGKASAN HARIAN & GRAFIK (CODE-SPLIT + DEFERRED IDLE RENDER) */}
-          <div className="shrink-0 z-20 bg-slate-100/95 backdrop-blur-xs px-2 sm:px-4 pt-1.5 pb-[70px] border-t border-slate-200/80 shadow-md">
-            <div className="max-w-7xl mx-auto w-full">
-              {isHeavyWidgetsReady ? (
-                <Suspense fallback={<MobileDailyReportSkeleton collapsed={isSummaryCollapsed} />}>
-                  <LazyDailyReportWidget
-                    variant="mobile-bar"
-                    transaksiList={transaksiList}
-                    pengeluaranList={pengeluaranList}
-                    activeLaundryId={activeLaundry.id}
-                    currentUser={currentUser}
-                    formattedToday={formattedToday}
-                    isSummaryCollapsed={isSummaryCollapsed}
-                    onToggleCollapse={() => setIsSummaryCollapsed((v) => !v)}
-                  />
-                </Suspense>
-              ) : (
-                <MobileDailyReportSkeleton collapsed={isSummaryCollapsed} />
-              )}
-            </div>
+          {/* WIDGET RINGKASAN KEUANGAN SEBAGAI FOOTER DI ATAS NAVIGASI */}
+          <div className="fixed bottom-14 left-0 right-0 z-30 bg-white border-t border-slate-200 px-2 sm:px-4 py-1 shadow-md">
+            {isHeavyWidgetsReady ? (
+              <Suspense fallback={<MobileDailyReportSkeleton collapsed={isSummaryCollapsed} />}>
+                <LazyDailyReportWidget
+                  variant="mobile-bar"
+                  transaksiList={transaksiList}
+                  pengeluaranList={pengeluaranList}
+                  activeLaundryId={activeLaundry.id}
+                  currentUser={currentUser}
+                  formattedToday={formattedToday}
+                  isSummaryCollapsed={isSummaryCollapsed}
+                  onToggleCollapse={() => setIsSummaryCollapsed((v) => !v)}
+                />
+              </Suspense>
+            ) : (
+              <MobileDailyReportSkeleton collapsed={isSummaryCollapsed} />
+            )}
           </div>
 
-          {/* 6. FLOATING ACTION BUTTON (+) TRANSAKSI BARU */}
+          {/* FLOATING ACTION BUTTON (+) TRANSAKSI BARU */}
           <button
             onClick={onOpenNewTransaksi}
             data-tour="btn-tambah-transaksi"
@@ -1248,6 +1187,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             )}
           </button>
 
+          {/* NAVBAR BOTTOM */}
           <nav className="fixed bottom-0 left-0 right-0 z-30 bg-[#800000] text-white h-14 flex items-center justify-around px-1 shadow-2xl border-t border-white/10 pb-safe">
             <button
               onClick={onOpenStatusPengerjaan}
@@ -1303,7 +1243,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </>
       )}
 
-      {/* MODAL KONFIRMASI PENGAMBILAN TRANSAKSI (LAZY CHUNK) */}
+      {/* MODAL KONFIRMASI PENGAMBILAN TRANSAKSI */}
       {trxToAmbil && (
         <Suspense fallback={null}>
           <LazyPickupConfirmModal
@@ -1318,7 +1258,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </Suspense>
       )}
 
-      {/* MODAL INPUT KILAT AMBIL NOTA LAMA (LAZY CHUNK — HANYA DIMUAT SAAT DIBUKA) */}
+      {/* MODAL INPUT KILAT AMBIL NOTA LAMA */}
       {isTransitionModalOpen && (
         <Suspense fallback={null}>
           <LazyQuickTransitionPickupModal
