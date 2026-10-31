@@ -2586,6 +2586,7 @@ export default function App({ initialBootData }: { initialBootData?: InitialBoot
                   updateTransaksiList(
                     transaksiList.map((t) => (t.id === trx.id ? updated : t))
                   );
+                  FirebaseSyncService.saveTransaksi(updated).catch(console.error);
                   if (autoFinish) {
                     toast.success(`Pesanan ${trx.nomorTransaksi || trx.namaPelanggan} selesai & siap diambil!`);
                   } else {
@@ -2601,6 +2602,7 @@ export default function App({ initialBootData }: { initialBootData?: InitialBoot
                 updateTransaksiList(
                   transaksiList.map((t) => (t.id === trx.id ? updated : t))
                 );
+                FirebaseSyncService.saveTransaksi(updated).catch(console.error);
                 toast.success(`Pesanan ${trx.nomorTransaksi || trx.namaPelanggan} selesai & siap diambil!`);
               }
             }}
@@ -2724,6 +2726,7 @@ export default function App({ initialBootData }: { initialBootData?: InitialBoot
               updateTransaksiList(
                 transaksiList.map((t) => (t.id === updated.id ? updated : t))
               );
+              FirebaseSyncService.saveTransaksi(updated).catch(console.error);
             }}
             onAmbilTransaksi={handleAmbilTransaksi}
             onAmbilBanyakTransaksi={handleAmbilBanyakTransaksi}
@@ -3102,6 +3105,7 @@ export default function App({ initialBootData }: { initialBootData?: InitialBoot
                 updateTransaksiList(
                   transaksiList.map((t) => (t.id === trxForAssignStaff.id ? updated : t))
                 );
+                FirebaseSyncService.saveTransaksi(updated).catch(console.error);
                 setTrxForAssignStaff(null);
               }}
             />
