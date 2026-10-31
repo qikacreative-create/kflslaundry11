@@ -15,7 +15,7 @@ export default defineConfig(() => {
         manifest: {
           id: '/',
           name: 'Kafelas Laundry',
-          short_name: 'Kafelas',
+          short_name: 'Kafelas Laundry',
           description: 'Aplikasi Manajemen Operasional, Kasir, dan Keuangan Laundry',
           theme_color: '#800000',
           background_color: '#800000',
