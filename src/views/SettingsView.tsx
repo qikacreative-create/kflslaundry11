@@ -39,7 +39,7 @@ import {
   disconnectBluetoothPrinter,
   pairBluetoothPrinterDirectly,
 } from '../utils/nativeBridge';
-import { TopUpModal } from '../components/TopUpModal';
+import { TopUpModal } from '../components/TopUpModal.tsx';
 import { MidtransAdminSetupModal } from '../components/MidtransAdminSetupModal';
 import {
   SuperAdminBillingModal,

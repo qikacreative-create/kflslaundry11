@@ -117,7 +117,7 @@ const SubscriptionExpiredModal = lazy(() =>
   }))
 );
 const TopUpModal = lazy(() =>
-  import('./components/TopUpModal').then((m) => ({ default: m.TopUpModal }))
+  import('./components/TopUpModal.tsx').then((m) => ({ default: m.TopUpModal }))
 );
 const InteractiveTourModal = lazy(() =>
   import('./components/InteractiveTourModal').then((m) => ({ default: m.InteractiveTourModal }))
@@ -2260,22 +2260,35 @@ export default function App({ initialBootData }: { initialBootData?: InitialBoot
     days: number
   ): Promise<boolean> => {
     if (!currentUser) return false;
+
+    // Keamanan: Fungsi hanya bisa diakses oleh akun dengan role: 'owner'
+    if (currentUser.role !== 'owner') {
+      toast.error('Akses ditolak: Hanya akun dengan role Owner yang dapat memperpanjang paket langganan.');
+      return false;
+    }
+
     if ((currentUser.walletBalance || 0) < cost) {
       toast.warning(
-        `Saldo dompet tidak mencukupi (${formatRupiah(cost)}). Pilih Lewat Midtrans atau Transfer Biasa.`
+        `Saldo dompet Anda (${formatRupiah(
+          currentUser.walletBalance || 0
+        )}) tidak mencukupi untuk biaya ${formatRupiah(cost)}. Silakan isi saldo (top-up) terlebih dahulu.`
       );
       setGlobalPaymentModal({
         open: true,
-        purpose: 'extend_premium',
-        method: 'midtrans',
+        purpose: 'topup_wallet',
+        method: 'manual',
         nominal: cost,
       });
       return false;
     }
 
     try {
-      const { extendSubscriptionViaBackend } = await import('./services/billingService');
-      const result = await extendSubscriptionViaBackend(days);
+      const { extendSubscriptionDirectFromWallet } = await import('./services/billingService');
+      const result = await extendSubscriptionDirectFromWallet({
+        durationDays: days,
+        customCost: cost,
+      });
+
       const updatedUser: User = {
         ...currentUser,
         walletBalance: result.walletBalance,
@@ -2323,17 +2336,17 @@ export default function App({ initialBootData }: { initialBootData?: InitialBoot
       if (billingErr?.code === 'INSUFFICIENT_WALLET_BALANCE') {
         toast.warning(
           billingErr.message ||
-            `Saldo dompet tidak mencukupi (${formatRupiah(cost)}). Pilih Lewat Midtrans atau Transfer Biasa.`
+            `Saldo dompet tidak mencukupi (${formatRupiah(cost)}). Silakan lakukan top-up saldo terlebih dahulu.`
         );
         setGlobalPaymentModal({
           open: true,
-          purpose: 'extend_premium',
-          method: 'midtrans',
+          purpose: 'topup_wallet',
+          method: 'manual',
           nominal: billingErr.requiredCost || cost,
         });
       } else {
         toast.error(
-          billingErr?.message || 'Gagal memperpanjang langganan di server. Saldo tidak terpotong.'
+          billingErr?.message || 'Gagal memperpanjang langganan langsung ke Firestore. Saldo tidak terpotong.'
         );
       }
       return false;

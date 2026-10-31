@@ -21,7 +21,7 @@ import { User, Laundry, SubscriptionHistory } from '../types';
 import { formatRupiah, formatDateIndo } from '../utils/formatters';
 import { useToast, useConfirm } from '../components/NotificationContext';
 import { getLaundryLimits } from '../utils/subscription';
-import { TopUpModal } from '../components/TopUpModal';
+import { TopUpModal } from '../components/TopUpModal.tsx';
 import {
   SuperAdminBillingModal,
   SelfAccountBillingSnapshot,

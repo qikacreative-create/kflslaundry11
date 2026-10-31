@@ -662,7 +662,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </header>
 
           {/* 2. AREA STICKY / TERKUNCI (PWA Banner, Alert, Tombol Ambil Nota Lama, & Kolom Search) */}
-          <div className="bg-slate-100 px-1.5 sm:px-4 md:px-6 pt-1.5 pb-1 shrink-0 z-20 space-y-1.5">
+          <div className=" ">
             <PWAInstallButton variant="banner" />
 
             {isExpired && !isNewcomer && (
@@ -768,7 +768,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             )}
 
             {/* PENCARIAN & 3 TOMBOL FILTER BERSEBELAHAN */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-2 sm:p-3 shadow-2xs space-y-1.5">
+            <div className="bg-white p-2 sm:p-3 shadow-2xs space-y-1.5">
               {showAmbilNotaLama && (
                 <div className="flex items-center gap-1.5">
                   <button
@@ -878,8 +878,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           {/* 3. AREA ANTREAN TRANSAKSI YANG BISA DI-SCROLL */}
-          <div className="flex-1 overflow-y-auto px-1.5 sm:px-4 md:px-6 py-1">
-            <div className="max-w-7xl mx-auto w-full space-y-3 pb-32">
+          <div className="flex-1 overflow-y-auto px-1.5 sm:px-4 md:px-6 py-0.5">
+            <div className="max-w-7xl mx-auto w-full space-y-0.5 pb-20">
               <main className="space-y-1">
                 {displayedTrx.length === 0 ? (
                   showInitialSkeleton ? (
@@ -1171,7 +1171,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 : 'Buat Transaksi Baru'
             }
             className={`fixed ${
-              isSummaryCollapsed ? 'bottom-5' : 'bottom-[20px]'
+              isSummaryCollapsed ? 'bottom-5' : 'bottom-[16px]'
             } md:bottom-5 left-1/2 -translate-x-1/2 z-40 w-15 h-12 sm:w-17 sm:h-14 rounded-full ${
               activeBranchTrx.length >= 400
                 ? 'bg-red-600 hover:bg-red-700 ring-2 ring-red-300'

@@ -10,19 +10,18 @@ import {
   Zap,
   ShieldCheck,
 } from 'lucide-react';
-import { User } from '../types';
+import type { User } from '../types';
 import { formatRupiah } from '../utils/formatters';
 import { useToast } from './NotificationContext';
+import type { PaymentPurpose, MidtransVerifyResult } from '../services/midtransService';
 import {
   OFFICIAL_PAYMENT_ACCOUNTS,
-  PaymentPurpose,
-  MidtransVerifyResult,
   buildWhatsAppAdminUrl,
   startMidtransPayment,
   verifyMidtransOrder,
 } from '../services/midtransService';
 
-interface TopUpModalProps {
+export interface TopUpModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser: User;
@@ -402,6 +401,18 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
             </div>
           ) : (
             <div className="space-y-2.5">
+              {/* Info Pemisahan Alur Top-Up vs Perpanjangan Langsung */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-[11px] text-blue-900 space-y-1">
+                <span className="font-bold flex items-center gap-1.5 text-blue-800">
+                  <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <span>Pemisahan Alur Top-Up & Perpanjangan:</span>
+                </span>
+                <p className="text-[10px] text-blue-800 leading-relaxed">
+                  <strong>1. Top-Up (Perlu Konfirmasi Admin):</strong> Silakan transfer ke rekening resmi lalu kirim bukti ke WhatsApp Admin agar diverifikasi dan ditambahkan ke saldo dompet.<br />
+                  <strong>2. Perpanjangan (Eksekusi Langsung):</strong> Begitu saldo dompet Anda terisi, Anda bebas memperpanjang paket kapan saja langsung dari tombol &ldquo;Perpanjang dari Saldo&rdquo; tanpa perlu persetujuan admin lagi.
+                </p>
+              </div>
+
               <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-2 text-slate-700">
                 <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">
                   Transfer {formatRupiah(nominalFinal)} ke Rekening Resmi:

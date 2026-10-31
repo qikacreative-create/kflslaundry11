@@ -1,8 +1,12 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig(() => {
   return {
@@ -114,34 +118,35 @@ export default defineConfig(() => {
           ],
         },
         devOptions: {
-          enabled: true,
-          type: 'module',
+          enabled: false,
         },
       }),
     ],
     resolve: {
       alias: {
-        '@': path.resolve(import.meta.dirname || '.', '.'),
+        '@': __dirname,
       },
+      extensions: ['.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
     },
     build: {
       target: 'esnext',
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (id.includes('node_modules/firebase') || id.includes('node_modules/@firebase')) {
+            const normalizedId = id.replace(/\\/g, '/');
+            if (normalizedId.includes('node_modules/firebase') || normalizedId.includes('node_modules/@firebase')) {
               return 'vendor-firebase';
             }
-            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            if (normalizedId.includes('node_modules/react') || normalizedId.includes('node_modules/react-dom')) {
               return 'vendor-react';
             }
-            if (id.includes('node_modules/lucide-react')) {
+            if (normalizedId.includes('node_modules/lucide-react')) {
               return 'vendor-icons';
             }
-            if (id.includes('node_modules/xlsx')) {
+            if (normalizedId.includes('node_modules/xlsx')) {
               return 'vendor-xlsx';
             }
-            if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas')) {
+            if (normalizedId.includes('node_modules/jspdf') || normalizedId.includes('node_modules/html2canvas')) {
               return 'vendor-pdf';
             }
           },

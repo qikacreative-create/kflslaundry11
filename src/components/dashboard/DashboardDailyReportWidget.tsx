@@ -315,9 +315,9 @@ export const DashboardDailyReportWidget: React.FC<DashboardDailyReportWidgetProp
 
   // Mobile Bottom Bar
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 space-y-2">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-        <div className="flex items-center gap-2">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-2 pt-2 pb-1 space-y-1">
+      <div className="flex items-center justify-between border-b border-slate-100 ">
+        <div className="flex items-center gap-1">
           <span className="text-[12px] font-bold text-slate-800 capitalize">
             {formattedToday}
           </span>
@@ -382,25 +382,25 @@ export const DashboardDailyReportWidget: React.FC<DashboardDailyReportWidgetProp
             <div className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-between">
               <span className="text-[10px] font-semibold text-slate-500">Pemasukan</span>
               <span className="text-xs font-bold text-emerald-600 tabular-nums">
-                {formatRupiah(stats.totalUangMasuk)}
+                {formatRupiah(stats.totalUangMasuk).replace('Rp','')}
               </span>
             </div>
             <div className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-between">
               <span className="text-[10px] font-semibold text-slate-500">Pengeluaran</span>
               <span className="text-xs font-bold text-red-600 tabular-nums">
-                {formatRupiah(stats.totalPengeluaran)}
+                {formatRupiah(stats.totalPengeluaran).replace('Rp','')}
               </span>
             </div>
           </div>
 
-          <div className="px-2.5 py-2 rounded-lg border border-emerald-200 bg-emerald-50/60 flex items-center justify-between">
+          <div className="px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50/60 flex items-center justify-between">
             <span className="text-xs font-bold text-slate-700">Total Laba Hari Ini</span>
             <span className="text-xs font-black text-emerald-700 tabular-nums">
               {formatRupiah(stats.totalLaba)}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] pt-1.5 text-slate-600 border-t border-slate-100">
+          <div className="grid grid-cols-2 gap-x-9 gap-y-0 text-[11px] pt-0.5 text-slate-600 border-t border-slate-100">
             <div className="flex justify-between items-center">
               <span>Transaksi Masuk:</span>
               <span className="font-bold text-slate-900 tabular-nums">{stats.transaksiMasuk}</span>
